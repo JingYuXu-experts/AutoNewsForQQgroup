@@ -1,0 +1,32 @@
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.venv/
+venv/
+env/
+
+# ---- PyInstaller 产物 ----
+build/
+dist/
+*.manifest
+
+# ---- 密钥与运行数据（绝不能提交）----
+# 配置里含 AppSecret / DeepSeek Key，只在本机 %APPDATA% 下，绝不入库
+config.json
+state.json
+*.log
+logs/
+reports/
+media/
+.env
+.env.*
+secrets.json
+
+# ---- 编辑器 / 系统 ----
+.vscode/
+.idea/
+*.swp
+Thumbs.db
+desktop.ini
