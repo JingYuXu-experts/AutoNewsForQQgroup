@@ -23,7 +23,43 @@ if getattr(sys, "frozen", False):
 else:
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-VERSION = "1.0.1"
+VERSION = "1.0.2"
+
+
+def _soften_console() -> None:
+    """让控制台编码不再成为崩溃源。
+
+    Windows 控制台默认 GBK，日志里的 ✅ 之类字符编码不了会抛
+    UnicodeEncodeError；未捕获时程序直接崩（而且往往是在「已经推送成功、
+    只差打一行日志」的时候崩，最难排查）。这里统一把不可编码字符降级成 ?。
+    """
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(errors="replace")
+        except Exception:
+            pass
+
+
+def _report_fatal(exc: BaseException) -> None:
+    """兜底：把未处理异常写进日志，并弹一个看得懂的提示框。"""
+    try:
+        from app.core import config, log
+        log.log(f"程序异常退出：{type(exc).__name__}: {exc}")
+        where = config.logs_dir()
+    except Exception:
+        where = ""
+    try:
+        import tkinter as tk
+        from tkinter import messagebox
+        root = tk.Tk()
+        root.withdraw()
+        messagebox.showerror(
+            "中东要闻推送 · 出错了",
+            f"{type(exc).__name__}: {exc}\n\n详情见日志：\n{where}",
+        )
+        root.destroy()
+    except Exception:
+        pass
 
 
 def main() -> int:
@@ -88,4 +124,13 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    _soften_console()
+    try:
+        sys.exit(main())
+    except KeyboardInterrupt:
+        sys.exit(130)
+    except SystemExit:
+        raise
+    except BaseException as exc:            # 兜底：不要让用户看到裸 traceback
+        _report_fatal(exc)
+        sys.exit(1)

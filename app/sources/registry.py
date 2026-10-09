@@ -96,6 +96,31 @@ EXCLUDE = (
     "体育", "足球", "篮球", "奥运",
 )
 
+# 「泛话题」信源：RSS 是全站内容，不限于中东（如 Al-Monitor）。
+# 这类信源要额外确认与中东相关，否则会把气候、体育、南美政治之类的稿子推出去。
+BROAD_SOURCES = {"almonitor"}
+
+# 中东相关性线索词（国家 / 城市 / 主要行为体 / 地标）
+ME_HINTS = (
+    "iran", "iraq", "israel", "palestin", "gaza", "lebanon", "syria", "yemen",
+    "saudi", "qatar", "emirat", "dubai", "abu dhabi", "kuwait", "bahrain",
+    "oman", "jordan", "egypt", "turkey", "turkish", "libya", "sudan",
+    "morocco", "algeria", "tunisia", "kurdistan", "middle east", "persian gulf",
+    "hormuz", "bab al-mandab", "red sea", "west bank", "golan",
+    "tehran", "baghdad", "damascus", "beirut", "riyadh", "doha", "sanaa",
+    "aden", "taiz", "amman", "cairo", "ankara", "jerusalem", "istanbul",
+    "houthi", "hezbollah", "hamas", "irgc", "netanyahu", "khamenei",
+    "erdogan", "assad", "sharaa", "peseshkian", "pezeshkian",
+)
+
+
+def is_offtopic(item: dict) -> bool:
+    """泛话题信源里，与中东毫无关系的内容。"""
+    if item.get("source") not in BROAD_SOURCES:
+        return False
+    blob = f"{item.get('title', '')} {item.get('summary', '')}".lower()
+    return not any(h in blob for h in ME_HINTS)
+
 # 中文分类标签，用于给推送加个领域标记
 CN_TAGS: list[tuple[tuple[str, ...], str]] = [
     (("strait of hormuz", "bab al-mandab", "red sea", "tanker", "shipping", "霍尔木兹", "红海", "油轮"), "航道安全"),

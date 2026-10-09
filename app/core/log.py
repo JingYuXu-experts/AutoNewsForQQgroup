@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import datetime as dt
 import os
+import sys
 import threading
 
 from . import config
@@ -27,6 +28,31 @@ def _log_file() -> str:
     return os.path.join(config.logs_dir(), f"{day}.log")
 
 
+def _console_print(line: str) -> None:
+    """往控制台打一行。
+
+    Windows 控制台默认是 GBK，日志里的 ✅ 这类字符编码不了会抛
+    UnicodeEncodeError —— 未捕获时整个程序会崩掉（发完消息才崩，最难查）。
+    这里做「降级不抛异常」处理：编不了的字符换成 ?，实在不行就丢弃这一行。
+    """
+    stream = sys.stdout
+    if stream is None:                     # 打包成 windowed exe 时没有控制台
+        return
+    try:
+        print(line, flush=True)
+        return
+    except UnicodeEncodeError:
+        pass
+    except (OSError, ValueError, AttributeError):
+        return
+    try:
+        enc = getattr(stream, "encoding", None) or "utf-8"
+        stream.write(line.encode(enc, "replace").decode(enc, "replace") + "\n")
+        stream.flush()
+    except Exception:
+        pass
+
+
 def log(msg: str, level: str = "info") -> None:
     line = f"[{dt.datetime.now():%Y-%m-%d %H:%M:%S}] {msg}"
     with _LOCK:
@@ -35,7 +61,7 @@ def log(msg: str, level: str = "info") -> None:
                 f.write(line + "\n")
         except OSError:
             pass
-    print(line, flush=True)
+    _console_print(line)
     for fn in list(_listeners):
         try:
             fn(line, level)

@@ -74,7 +74,8 @@ exe = EXE(
     upx_exclude=[],
     runtime_tmpdir=None,
     console=False,                 # 双击不弹黑窗
-    disable_windowed_traceback=False,
+    disable_windowed_traceback=True,   # 不用 PyInstaller 的裸 traceback 弹窗，
+                                       # 改由 main.py 记日志 + 弹友好提示
     argv_emulation=False,
     target_arch=None,
     codesign_identity=None,

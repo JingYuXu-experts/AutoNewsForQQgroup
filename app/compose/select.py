@@ -120,6 +120,9 @@ def pick(cfg: dict, items: list[dict], state: dict) -> PickResult:
         if registry.is_excluded(it):
             res.excluded += 1
             continue
+        if registry.is_offtopic(it):
+            res.excluded += 1
+            continue
         sc = registry.score(it)
         if sc < min_score:
             res.below_score += 1
