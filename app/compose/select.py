@@ -47,6 +47,13 @@ def same_event(a: set, b: set, ratio: float = 0.32, min_shared: int = 2) -> bool
     return len(shared) / min(len(a), len(b)) >= ratio
 
 
+def overlap_ratio(a: set, b: set) -> float:
+    """两条标题的信息词重合度（0~1）。用来识别「几乎是同一篇稿子」。"""
+    if not a or not b:
+        return 0.0
+    return len(a & b) / min(len(a), len(b))
+
+
 class PickResult:
     """选稿结果，含统计信息，便于日志与界面展示。"""
 
@@ -151,10 +158,20 @@ def pick(cfg: dict, items: list[dict], state: dict) -> PickResult:
             for r in recent:
                 if time.time() - r.get("at", 0) > dedupe_hours * 3600:
                     continue
-                if same_event(toks, set(r.get("tokens") or [])):
+                rtoks = set(r.get("tokens") or [])
+                if not same_event(toks, rtoks):
+                    continue
+                # 措辞几乎一致（同一篇稿子换了个源）→ 一律算重复
+                if overlap_ratio(toks, rtoks) >= 0.8:
                     blocked = r
                     break
-        if blocked is not None and it["score"] < int(blocked.get("score", 0)) + 2:
+                # 措辞有变化，但分数没高出一截 → 还是同一件事的复述，算重复。
+                # 只有「明显更重要」才当作新的重大进展（(更新)）放行。
+                if it["score"] < int(r.get("score", 0)) + 4:
+                    blocked = r
+                    break
+
+        if blocked is not None:
             res.duplicate += 1
             log.log(f"· 跳过同事件旧稿：{it['title'][:55]}（近期已推："
                     f"{blocked.get('title', '')[:35]}）")

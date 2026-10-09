@@ -48,33 +48,44 @@ SOURCES: dict[str, dict] = {
 }
 
 # 重要性关键词加权（命中即加分，用于 minScore 门槛）
+# 注意：这里是「子串包含」匹配，所以只放不容易误伤的词
+# （例如不放 "war"，因为会命中 warning / toward / forward）。
 KEYWORDS: dict[str, int] = {
     # 军事冲突
     "airstrike": 3, "air strike": 3, "missile": 3, "drone attack": 3, "shelling": 3,
     "offensive": 2, "clashes": 2, "fighting": 2, "bombard": 3, "artillery": 2,
-    "空袭": 3, "导弹": 3, "袭击": 2, "交火": 2, "激战": 2,
+    "attack": 3, "strike": 2, "struck": 3, "blast": 3, "explosion": 3, "explode": 3,
+    "shot down": 3, "intercept": 2, "militant": 2, "terror": 2,
+    "空袭": 3, "导弹": 3, "袭击": 2, "交火": 2, "激战": 2, "爆炸": 3,
     # 伤亡
     "killed": 3, "dead": 3, "casualt": 3, "wounded": 2, "injured": 2, "death toll": 3,
     "死亡": 3, "伤亡": 3, "受伤": 2,
     # 国家层面
     "state of emergency": 3, "martial law": 3, "mobiliz": 2, "ultimatum": 2,
-    "sever": 2, "expel": 2, "sanction": 2, "ceasefire": 3, "truce": 2,
-    "紧急状态": 3, "制裁": 2, "停火": 3, "断交": 3,
+    "sever": 2, "expel": 2, "sanction": 3, "ceasefire": 3, "truce": 2,
+    "blockade": 3, "invasion": 3, "invade": 3,
+    "hostage": 3, "deploy": 2, "escalat": 2, "threat": 2, "seiz": 2,
+    "紧急状态": 3, "制裁": 3, "停火": 3, "断交": 3, "封锁": 3, "入侵": 3,
     # 大国介入
     "pentagon": 2, "white house": 2, "irgc": 2, "centcom": 3, "idf": 2,
     "tehran": 1, "washington": 1, "moscow": 1, "beijing": 2,
+    # 地区主体
+    "houthi": 2, "hezbollah": 2, "hamas": 2, "gaza": 1,
     # 通道与能源
     "strait of hormuz": 3, "bab al-mandab": 3, "red sea": 2, "suez": 2,
     "tanker": 3, "shipping": 2, "oil price": 2, "brent": 2, "crude": 2,
+    "nuclear": 2, "suspend": 2, "evacuat": 2,
     "霍尔木兹": 3, "曼德海峡": 3, "红海": 2, "油轮": 3, "油价": 2,
     # 涉华
     "china": 2, "chinese": 2, "中国": 2, "中方": 2,
     # 政权变动
     "coup": 3, "resign": 2, "assassinat": 3, "election": 1, "parliament": 1,
+    "riot": 2, "protest": 1,
     "政变": 3, "辞职": 2, "遇刺": 3,
-    # 降权项（软新闻）
+    # 降权项（软新闻 / 评论解读）
     "sport": -3, "football": -3, "league": -3, "match": -2, "festival": -2,
     "exhibition": -3, "tourism": -2, "concert": -3, "celebrity": -3,
+    "analysis": -2, "opinion": -2, "explainer": -2, "in pictures": -2,
     "体育": -3, "足球": -3, "展会": -3, "旅游": -2,
 }
 

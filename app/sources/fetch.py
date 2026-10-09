@@ -63,10 +63,14 @@ def fetch_all(cfg: dict) -> list[dict]:
         for it in got:
             it["source"] = key
             it["_date_only"] = False
-            w = timeutil.parse(it.get("date") or "")
+            date_s = (it.get("date") or "").strip()
+            # 列表页没给时间时，从链接路径里的 /YYYY/MM/DD/ 补（只有日期）
+            if not date_s:
+                date_s = it["date"] = date_from_url(it.get("url", ""))
+            w = timeutil.parse(date_s)
             if w:
                 # 只有日期、没有时刻 → 标记为「时间不精确」
-                if re.fullmatch(r"\d{4}[-/.]\d{1,2}[-/.]\d{1,2}", (it.get("date") or "").strip()):
+                if re.fullmatch(r"\d{4}[-/.]\d{1,2}[-/.]\d{1,2}", date_s):
                     it["_date_only"] = True
             it["when"] = w
             it["time_known"] = bool(w) and not it["_date_only"]
@@ -149,6 +153,22 @@ def parse_shafaq(txt: str) -> list[dict]:
         items.append({"title": title[:180], "url": "https://shafaq.com" + href,
                       "section": href.split("/")[2], "date": "", "summary": ""})
     return items
+
+
+# 链接形如 /Detail/2026/10/09/777931/... —— 有些 RSS（如 Press TV）不给 pubDate，
+# 但把日期写在 URL 里，只能从这里补。
+_URL_DATE = re.compile(r"/(\d{4})/(\d{1,2})/(\d{1,2})(?:/|$)")
+
+
+def date_from_url(url: str) -> str:
+    """从链接路径里抠出 /YYYY/MM/DD/，返回 'YYYY-MM-DD'，抠不到返回空串。"""
+    m = _URL_DATE.search(url or "")
+    if not m:
+        return ""
+    y, mo, d = m.group(1), int(m.group(2)), int(m.group(3))
+    if not (2000 <= int(y) <= 2100 and 1 <= mo <= 12 and 1 <= d <= 31):
+        return ""
+    return f"{y}-{mo:02d}-{d:02d}"
 
 
 def parse_rss(txt: str, source: str) -> list[dict]:

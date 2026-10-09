@@ -10,6 +10,8 @@ env/
 # ---- PyInstaller 产物 ----
 build/
 dist/
+_out/
+_build/
 *.manifest
 
 # ---- 密钥与运行数据（绝不能提交）----
