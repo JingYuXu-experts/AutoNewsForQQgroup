@@ -543,6 +543,7 @@ class App:
                                           f"{self.scheduler.next_run:%Y-%m-%d %H:%M}")
                 elif kind == "gid_state":
                     self.v_gid_state.set(a)
+                    self.lbl_gid_state.configure(style="Hint.TLabel")
                 elif kind == "gid_result":
                     if a:
                         self.v_gid.set(b)

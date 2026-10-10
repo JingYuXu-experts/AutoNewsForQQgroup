@@ -23,7 +23,7 @@ if getattr(sys, "frozen", False):
 else:
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-VERSION = "1.0.2"
+VERSION = "1.0.3"
 
 
 def _soften_console() -> None:

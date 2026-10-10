@@ -126,6 +126,9 @@ class GroupIdCatcher:
 
         # 紧接着就在当前帧里把 WebSocket 建好，不留窗口期。
         self._prebuilt = _ws_connect_retry(self._ws_url, self._stop)
+        # 连上就报一次状态：QQ 网关不保证及时下发 READY，界面不能一直
+        # 停在「正在连接」，否则用户以为卡死了。
+        self.on_status("已连接 QQ 网关，等待群消息…（请在群里 @机器人 发一句话）")
 
     def stop(self, wait: float = 3.0) -> None:
         """请求停止并尽量等线程退出。
@@ -238,6 +241,8 @@ class GroupIdCatcher:
                     hb_interval = max(5.0, hb * 0.9)
                     _ws_send(sock, json.dumps({"op": 1, "d": None}))
                     last_ping = time.time()
+                    # Hello 到了说明会话已经建立，这时就可以确定「连上了」
+                    self.on_status("已连接 QQ 网关，等待群消息…（请在群里 @机器人 发一句话）")
                 elif op == 0:                             # 事件
                     t = payload.get("t") or ""
                     d = payload.get("d") or {}
